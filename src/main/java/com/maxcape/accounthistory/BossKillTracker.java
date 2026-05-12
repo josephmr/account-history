@@ -40,7 +40,7 @@ class BossKillTracker
 			return;
 		}
 
-		String message = event.getMessage();
+		String message = event.getMessage().replaceAll("<[^>]+>", "");
 
 		// Log any message that looks like a kill count so we can see the raw format,
 		// including any color tags that may prevent the pattern from matching.
