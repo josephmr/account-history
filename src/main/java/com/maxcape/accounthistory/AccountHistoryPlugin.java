@@ -2,22 +2,21 @@ package com.maxcape.accounthistory;
 
 import com.google.gson.Gson;
 import com.google.inject.Provides;
+import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
-import net.runelite.api.Skill;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.GameTick;
 import net.runelite.api.events.StatChanged;
+import net.runelite.client.RuneLite;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
@@ -33,15 +32,14 @@ import okhttp3.Response;
 @Slf4j
 @PluginDescriptor(
 	name = "Account History",
-	description = "Tracks skill level ups and collection log entries",
-	tags = {"skill", "collection log", "tracker", "history"}
+	description = "Tracks skill level ups, collection log entries, boss kills, and achievement diaries",
+	tags = {"skill", "collection log", "tracker", "history", "boss", "diary"}
 )
 public class AccountHistoryPlugin extends Plugin
 {
 	private static final String API_URL = "https://maxcape.net/api/events";
 	private static final MediaType JSON = MediaType.parse("application/json");
-	private static final Pattern COLLECTION_LOG_PATTERN =
-		Pattern.compile("New item added to your collection log: (.+)");
+	private static final int FLUSH_TICKS = 500; // ~5 minutes
 
 	@Inject
 	private Client client;
@@ -55,20 +53,40 @@ public class AccountHistoryPlugin extends Plugin
 	@Inject
 	private Gson gson;
 
-	private final EnumMap<Skill, Integer> previousLevels = new EnumMap<>(Skill.class);
-	private boolean levelsInitialized = false;
+	private LevelUpTracker levelUpTracker;
+	private CollectionLogTracker collectionLogTracker;
+	private BossKillTracker bossKillTracker;
+	private DiaryTracker diaryTracker;
+	private int tickCount;
 
 	@Override
 	protected void startUp()
 	{
+		File storeFile = new File(new File(RuneLite.RUNELITE_DIR, "account-history"), "pending-events.json");
+		EventBatcher batcher = new EventBatcher(storeFile, gson);
+		batcher.load();
+
+		levelUpTracker      = new LevelUpTracker(client, this, config);
+		collectionLogTracker = new CollectionLogTracker(this, config);
+		bossKillTracker     = new BossKillTracker(batcher, this, config);
+		diaryTracker        = new DiaryTracker(this, config);
+		tickCount = 0;
+
 		log.debug("Account History started");
 	}
 
 	@Override
 	protected void shutDown()
 	{
-		previousLevels.clear();
-		levelsInitialized = false;
+		if (bossKillTracker != null)
+		{
+			bossKillTracker.flush();
+		}
+		levelUpTracker      = null;
+		collectionLogTracker = null;
+		bossKillTracker     = null;
+		diaryTracker        = null;
+		tickCount = 0;
 		log.debug("Account History stopped");
 	}
 
@@ -76,57 +94,70 @@ public class AccountHistoryPlugin extends Plugin
 	public void onGameStateChanged(GameStateChanged event)
 	{
 		GameState state = event.getGameState();
-		if (state == GameState.LOGGED_IN && !levelsInitialized)
+		if (state == GameState.LOGGED_IN)
 		{
-			for (Skill skill : Skill.values())
+			if (levelUpTracker != null)
 			{
-				previousLevels.put(skill, client.getRealSkillLevel(skill));
+				levelUpTracker.onLoggedIn();
 			}
-			levelsInitialized = true;
 		}
 		else if (state == GameState.LOGIN_SCREEN || state == GameState.HOPPING)
 		{
-			previousLevels.clear();
-			levelsInitialized = false;
+			if (bossKillTracker != null)
+			{
+				bossKillTracker.flush();
+			}
+			if (levelUpTracker != null)
+			{
+				levelUpTracker.onLoggedOut();
+			}
 		}
 	}
 
 	@Subscribe
 	public void onStatChanged(StatChanged event)
 	{
-		if (!levelsInitialized || !config.sendEvents())
+		if (levelUpTracker != null)
 		{
-			return;
-		}
-
-		Skill skill = event.getSkill();
-		int newLevel = event.getLevel();
-		int oldLevel = previousLevels.getOrDefault(skill, 0);
-
-		previousLevels.put(skill, newLevel);
-
-		if (newLevel > oldLevel)
-		{
-			sendEvent("SKILL_LEVEL_UP", Map.of("skill", skill.getName(), "level", newLevel));
+			levelUpTracker.onStatChanged(event);
 		}
 	}
 
 	@Subscribe
 	public void onChatMessage(ChatMessage event)
 	{
-		if (!config.sendEvents() || event.getType() != ChatMessageType.GAMEMESSAGE)
+		if (event.getType() != ChatMessageType.GAMEMESSAGE)
 		{
 			return;
 		}
-
-		Matcher matcher = COLLECTION_LOG_PATTERN.matcher(event.getMessage());
-		if (matcher.matches())
+		if (collectionLogTracker != null)
 		{
-			sendEvent("COLLECTION_LOG", Map.of("itemName", matcher.group(1)));
+			collectionLogTracker.onChatMessage(event);
+		}
+		if (bossKillTracker != null)
+		{
+			bossKillTracker.onChatMessage(event);
+		}
+		if (diaryTracker != null)
+		{
+			diaryTracker.onChatMessage(event);
 		}
 	}
 
-	private void sendEvent(String type, Object data)
+	@Subscribe
+	public void onGameTick(GameTick event)
+	{
+		if (++tickCount >= FLUSH_TICKS)
+		{
+			tickCount = 0;
+			if (bossKillTracker != null)
+			{
+				bossKillTracker.flush();
+			}
+		}
+	}
+
+	void sendEvent(String type, Object data)
 	{
 		if (client.getLocalPlayer() == null || client.getLocalPlayer().getName() == null)
 		{
