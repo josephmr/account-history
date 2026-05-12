@@ -58,6 +58,7 @@ public class AccountHistoryPlugin extends Plugin
 	private BossKillTracker bossKillTracker;
 	private DiaryTracker diaryTracker;
 	private int tickCount;
+	private String cachedPlayerName;
 
 	@Override
 	protected void startUp()
@@ -87,6 +88,7 @@ public class AccountHistoryPlugin extends Plugin
 		bossKillTracker     = null;
 		diaryTracker        = null;
 		tickCount = 0;
+		cachedPlayerName = null;
 		log.debug("Account History stopped");
 	}
 
@@ -96,6 +98,10 @@ public class AccountHistoryPlugin extends Plugin
 		GameState state = event.getGameState();
 		if (state == GameState.LOGGED_IN)
 		{
+			if (client.getLocalPlayer() != null && client.getLocalPlayer().getName() != null)
+			{
+				cachedPlayerName = client.getLocalPlayer().getName();
+			}
 			if (levelUpTracker != null)
 			{
 				levelUpTracker.onLoggedIn();
@@ -159,14 +165,20 @@ public class AccountHistoryPlugin extends Plugin
 
 	void sendEvent(String type, Object data)
 	{
-		if (client.getLocalPlayer() == null || client.getLocalPlayer().getName() == null)
+		String playerName = client.getLocalPlayer() != null ? client.getLocalPlayer().getName() : null;
+		if (playerName == null)
 		{
+			playerName = cachedPlayerName;
+		}
+		if (playerName == null)
+		{
+			log.debug("sendEvent: no player name available, dropping {} event", type);
 			return;
 		}
 
 		Map<String, Object> payload = new LinkedHashMap<>();
 		payload.put("type", type);
-		payload.put("playerName", client.getLocalPlayer().getName());
+		payload.put("playerName", playerName);
 		payload.put("timestamp", Instant.now().toString());
 		payload.put("data", data);
 

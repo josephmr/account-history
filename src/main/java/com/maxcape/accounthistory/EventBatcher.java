@@ -12,6 +12,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -118,10 +120,7 @@ class EventBatcher
 			{
 				gson.toJson(pending, writer);
 			}
-			if (!tmp.renameTo(storeFile))
-			{
-				log.debug("Failed to atomically rename batch persist file");
-			}
+			Files.move(tmp.toPath(), storeFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 		}
 		catch (IOException e)
 		{
