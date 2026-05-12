@@ -38,7 +38,8 @@ class BossKillTracker
 			return;
 		}
 		String bossName = m.group(1);
-		batcher.record(bossName, "BOSS_KILL", Map.of("bossName", bossName));
+		int totalKc = Integer.parseInt(m.group(2).replace(",", ""));
+		batcher.record(bossName, "BOSS_KILL", Map.of("bossName", bossName, "totalKc", totalKc));
 	}
 
 	// Drain all pending batches and send. Not guarded by sendEvents() so kills

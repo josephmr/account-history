@@ -64,6 +64,7 @@ class EventBatcher
 			pending.put(key, existing.toBuilder()
 				.count(existing.getCount() + 1)
 				.lastAt(now)
+				.extraData(extraData)
 				.build());
 		}
 		persist();
