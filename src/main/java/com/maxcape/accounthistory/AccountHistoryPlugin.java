@@ -59,6 +59,7 @@ public class AccountHistoryPlugin extends Plugin
 	private DiaryTracker diaryTracker;
 	private int tickCount;
 	private String cachedPlayerName;
+	private long cachedAccountHash;
 
 	@Override
 	protected void startUp()
@@ -67,10 +68,10 @@ public class AccountHistoryPlugin extends Plugin
 		EventBatcher batcher = new EventBatcher(storeFile, gson);
 		batcher.load();
 
-		levelUpTracker      = new LevelUpTracker(client, this, config);
+		levelUpTracker       = new LevelUpTracker(client, this, config);
 		collectionLogTracker = new CollectionLogTracker(this, config);
-		bossKillTracker     = new BossKillTracker(batcher, this, config);
-		diaryTracker        = new DiaryTracker(this, config);
+		bossKillTracker      = new BossKillTracker(batcher, this, config);
+		diaryTracker         = new DiaryTracker(this, config);
 		tickCount = 0;
 
 		log.debug("Account History started");
@@ -83,12 +84,13 @@ public class AccountHistoryPlugin extends Plugin
 		{
 			bossKillTracker.flush();
 		}
-		levelUpTracker      = null;
+		levelUpTracker       = null;
 		collectionLogTracker = null;
-		bossKillTracker     = null;
-		diaryTracker        = null;
+		bossKillTracker      = null;
+		diaryTracker         = null;
 		tickCount = 0;
 		cachedPlayerName = null;
+		cachedAccountHash = 0;
 		log.debug("Account History stopped");
 	}
 
@@ -102,10 +104,12 @@ public class AccountHistoryPlugin extends Plugin
 			{
 				cachedPlayerName = client.getLocalPlayer().getName();
 			}
+			cachedAccountHash = client.getAccountHash();
 			if (levelUpTracker != null)
 			{
 				levelUpTracker.onLoggedIn();
 			}
+			identify();
 		}
 		else if (state == GameState.LOGIN_SCREEN || state == GameState.HOPPING)
 		{
@@ -136,18 +140,9 @@ public class AccountHistoryPlugin extends Plugin
 		{
 			return;
 		}
-		if (collectionLogTracker != null)
-		{
-			collectionLogTracker.onChatMessage(event);
-		}
-		if (bossKillTracker != null)
-		{
-			bossKillTracker.onChatMessage(event);
-		}
-		if (diaryTracker != null)
-		{
-			diaryTracker.onChatMessage(event);
-		}
+		if (collectionLogTracker != null) collectionLogTracker.onChatMessage(event);
+		if (bossKillTracker != null)      bossKillTracker.onChatMessage(event);
+		if (diaryTracker != null)         diaryTracker.onChatMessage(event);
 	}
 
 	@Subscribe
@@ -163,8 +158,19 @@ public class AccountHistoryPlugin extends Plugin
 		}
 	}
 
+	private void identify()
+	{
+		sendEvent("ACCOUNT_IDENTIFY", Map.of());
+	}
+
 	void sendEvent(String type, Object data)
 	{
+		if (cachedAccountHash == 0)
+		{
+			log.debug("sendEvent: no account hash available, dropping {} event", type);
+			return;
+		}
+
 		String playerName = client.getLocalPlayer() != null ? client.getLocalPlayer().getName() : null;
 		if (playerName == null)
 		{
@@ -178,6 +184,7 @@ public class AccountHistoryPlugin extends Plugin
 
 		Map<String, Object> payload = new LinkedHashMap<>();
 		payload.put("type", type);
+		payload.put("accountHash", String.valueOf(cachedAccountHash));
 		payload.put("playerName", playerName);
 		payload.put("timestamp", Instant.now().toString());
 		payload.put("data", data);
