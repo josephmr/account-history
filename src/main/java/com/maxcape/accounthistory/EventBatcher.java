@@ -50,6 +50,7 @@ class EventBatcher
 		PendingBatch existing = pending.get(key);
 		if (existing == null)
 		{
+			log.debug("EventBatcher: new batch — key='{}' type='{}'", key, eventType);
 			pending.put(key, PendingBatch.builder()
 				.key(key)
 				.eventType(eventType)
@@ -61,8 +62,10 @@ class EventBatcher
 		}
 		else
 		{
+			int newCount = existing.getCount() + 1;
+			log.debug("EventBatcher: incrementing batch — key='{}' count={}", key, newCount);
 			pending.put(key, existing.toBuilder()
-				.count(existing.getCount() + 1)
+				.count(newCount)
 				.lastAt(now)
 				.extraData(extraData)
 				.build());
@@ -72,6 +75,7 @@ class EventBatcher
 
 	synchronized List<PendingBatch> drain()
 	{
+		log.debug("EventBatcher: drain called — {} pending batch(es)", pending.size());
 		if (pending.isEmpty())
 		{
 			return Collections.emptyList();
@@ -95,6 +99,7 @@ class EventBatcher
 			if (loaded != null)
 			{
 				pending.putAll(loaded);
+				log.debug("EventBatcher: loaded {} pending batch(es) from disk", loaded.size());
 			}
 		}
 		catch (IOException e)
