@@ -1,5 +1,6 @@
 package com.maxcape.accounthistory;
 
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.Skill;
 import net.runelite.api.events.StatChanged;
@@ -7,6 +8,7 @@ import net.runelite.api.events.StatChanged;
 import java.util.EnumMap;
 import java.util.Map;
 
+@Slf4j
 class LevelUpTracker
 {
 	private final Client client;
@@ -54,6 +56,7 @@ class LevelUpTracker
 		previousLevels.put(skill, newLevel);
 		if (oldLevel > 0 && newLevel > oldLevel)
 		{
+			log.debug("Skill level up: {} -> {}", skill.getName(), newLevel);
 			plugin.sendEvent("SKILL_LEVEL_UP", Map.of("skill", skill.getName(), "level", newLevel));
 		}
 	}

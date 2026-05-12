@@ -1,5 +1,6 @@
 package com.maxcape.accounthistory;
 
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.events.ChatMessage;
 
@@ -7,6 +8,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Slf4j
 class DiaryTracker
 {
 	private static final Pattern DIARY_PATTERN = Pattern.compile(
@@ -33,9 +35,9 @@ class DiaryTracker
 		{
 			return;
 		}
-		plugin.sendEvent("ACHIEVEMENT_DIARY", Map.of(
-			"area", m.group("area"),
-			"difficulty", m.group("difficulty")
-		));
+		String area = m.group("area");
+		String difficulty = m.group("difficulty");
+		log.debug("Achievement diary completed: {} {}", difficulty, area);
+		plugin.sendEvent("ACHIEVEMENT_DIARY", Map.of("area", area, "difficulty", difficulty));
 	}
 }

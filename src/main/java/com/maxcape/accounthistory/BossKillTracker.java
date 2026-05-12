@@ -33,35 +33,28 @@ class BossKillTracker
 		{
 			return;
 		}
-
 		if (!config.sendEvents())
 		{
-			log.debug("BossKillTracker: sendEvents is off, skipping GAMEMESSAGE");
 			return;
 		}
 
 		String message = event.getMessage().replaceAll("<[^>]+>", "");
 
-		// Log any message that looks like a kill count so we can see the raw format,
-		// including any color tags that may prevent the pattern from matching.
-		if (message.contains("kill count"))
+		if (!message.contains("kill count"))
 		{
-			log.debug("BossKillTracker: potential kill count message (raw): '{}'", message);
+			return;
 		}
 
 		Matcher m = KILL_COUNT_PATTERN.matcher(message);
 		if (!m.matches())
 		{
-			if (message.contains("kill count"))
-			{
-				log.debug("BossKillTracker: kill count message did not match pattern — likely contains color tags");
-			}
+			log.debug("Kill count message did not match pattern: '{}'", message);
 			return;
 		}
 
 		String bossName = m.group(1);
 		int totalKc = Integer.parseInt(m.group(2).replace(",", ""));
-		log.debug("BossKillTracker: matched kill — boss='{}' totalKc={}", bossName, totalKc);
+		log.debug("Boss kill recorded: boss='{}' totalKc={}", bossName, totalKc);
 		batcher.record(bossName, "BOSS_KILL", Map.of("bossName", bossName, "totalKc", totalKc));
 	}
 
@@ -70,14 +63,13 @@ class BossKillTracker
 	void flush()
 	{
 		List<EventBatcher.PendingBatch> batches = batcher.drain();
-		log.debug("BossKillTracker: flushing {} pending batch(es)", batches.size());
 		for (EventBatcher.PendingBatch batch : batches)
 		{
 			Map<String, Object> data = new LinkedHashMap<>(batch.getExtraData());
 			data.put("kills", batch.getCount());
 			data.put("periodStart", batch.getFirstAt());
 			data.put("periodEnd", batch.getLastAt());
-			log.debug("BossKillTracker: sending BOSS_KILL — boss='{}' kills={} totalKc={}",
+			log.debug("Boss kills sent: boss='{}' kills={} totalKc={}",
 				data.get("bossName"), data.get("kills"), data.get("totalKc"));
 			plugin.sendEvent(batch.getEventType(), data);
 		}
