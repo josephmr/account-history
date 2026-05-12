@@ -8,22 +8,10 @@ import net.runelite.client.config.ConfigItem;
 public interface AccountHistoryConfig extends Config
 {
 	@ConfigItem(
-		keyName = "apiUrl",
-		name = "API URL",
-		description = "Base URL of the account history server",
-		position = 1
-	)
-	default String apiUrl()
-	{
-		return "http://localhost:5173";
-	}
-
-	@ConfigItem(
 		keyName = "sendEvents",
-		name = "Send events to server",
-		description = "Send skill level ups and collection log events to the account history server",
-		warning = "This feature submits your IP address to a 3rd-party server not controlled or verified by RuneLite developers",
-		position = 2
+		name = "Send events to maxcape.net",
+		description = "Send skill level ups and collection log events to maxcape.net",
+		warning = "This feature submits your IP address to a 3rd-party server not controlled or verified by RuneLite developers"
 	)
 	default boolean sendEvents()
 	{

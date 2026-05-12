@@ -38,6 +38,7 @@ import okhttp3.Response;
 )
 public class AccountHistoryPlugin extends Plugin
 {
+	private static final String API_URL = "https://maxcape.net/api/events";
 	private static final MediaType JSON = MediaType.parse("application/json");
 	private static final Pattern COLLECTION_LOG_PATTERN =
 		Pattern.compile("New item added to your collection log: (.+)");
@@ -140,7 +141,7 @@ public class AccountHistoryPlugin extends Plugin
 
 		String json = gson.toJson(payload);
 		Request request = new Request.Builder()
-			.url(config.apiUrl() + "/api/events")
+			.url(API_URL)
 			.post(RequestBody.create(JSON, json))
 			.build();
 
