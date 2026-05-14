@@ -18,8 +18,12 @@ import java.util.regex.Pattern;
 @Slf4j
 class BossKillTracker extends BaseTracker
 {
-	private static final Pattern KILL_COUNT_PATTERN =
-		Pattern.compile("Your (.+) kill count is: ([\\d,]+)\\.");
+	// "Your X kill/chest/completion/harvest/success/opened count is: N"
+	private static final Pattern PRIMARY_PATTERN =
+		Pattern.compile("Your (.+?)\\s(kill|chest|completion|harvest|success|opened)\\s?count is: ?([\\d,]+)\\.");
+	// "Your (completed|subdued) X count is: N" — raids, Wintertodt
+	private static final Pattern SECONDARY_PATTERN =
+		Pattern.compile("Your (?:completed|subdued) (.+?) count is: ([\\d,]+)\\.");
 	private static final int FLUSH_TICKS = 500;
 
 	private int tickCount;
@@ -40,20 +44,38 @@ class BossKillTracker extends BaseTracker
 
 		String message = event.getMessage().replaceAll("<[^>]+>", "");
 
-		if (!message.contains("kill count"))
+		if (!message.contains("count is:"))
 		{
 			return;
 		}
 
-		Matcher m = KILL_COUNT_PATTERN.matcher(message);
-		if (!m.matches())
+		String bossName = null;
+		int totalKc = 0;
+
+		Matcher m = PRIMARY_PATTERN.matcher(message);
+		if (m.matches())
 		{
-			log.debug("Kill count message did not match pattern: '{}'", message);
+			String rawName = m.group(1);
+			String type = m.group(2);
+			totalKc = Integer.parseInt(m.group(3).replace(",", ""));
+			bossName = normalizeBossName(rawName, type);
+		}
+		else
+		{
+			m = SECONDARY_PATTERN.matcher(message);
+			if (m.matches())
+			{
+				bossName = m.group(1);
+				totalKc = Integer.parseInt(m.group(2).replace(",", ""));
+			}
+		}
+
+		if (bossName == null)
+		{
+			log.debug("Kill count message did not match any pattern: '{}'", message);
 			return;
 		}
 
-		String bossName = m.group(1);
-		int totalKc = Integer.parseInt(m.group(2).replace(",", ""));
 		log.debug("Boss kill recorded: boss='{}' totalKc={}", bossName, totalKc);
 		batchEvent(bossName, "BOSS_KILL", Map.of("bossName", bossName, "totalKc", totalKc));
 	}
@@ -91,5 +113,41 @@ class BossKillTracker extends BaseTracker
 				data.get("bossName"), data.get("kills"), data.get("totalKc"));
 			sendEvent(batch.getEventType(), data);
 		});
+	}
+
+	private static String normalizeBossName(String rawName, String type)
+	{
+		switch (type)
+		{
+			case "kill":
+			case "success":
+			case "opened":
+				return rawName;
+			case "chest":
+				// Barrows chests and Lunar Chest (Perilous Moons)
+				if (rawName.equals("Barrows") || rawName.contains("Lunar"))
+				{
+					return rawName;
+				}
+				return null;
+			case "completion":
+				if (rawName.equals("Gauntlet"))
+				{
+					return "Crystalline Hunllef";
+				}
+				if (rawName.equals("Corrupted Gauntlet"))
+				{
+					return "Corrupted Hunllef";
+				}
+				return null;
+			case "harvest":
+				if (rawName.equalsIgnoreCase("herbiboar"))
+				{
+					return "Herbiboar";
+				}
+				return null;
+			default:
+				return null;
+		}
 	}
 }
