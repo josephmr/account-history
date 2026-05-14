@@ -49,6 +49,10 @@ abstract class BaseTracker
 		{
 			return;
 		}
+		if (plugin.isRestrictedWorld())
+		{
+			return;
+		}
 		long accountHash = plugin.getCachedAccountHash();
 		if (accountHash == 0)
 		{
@@ -94,6 +98,10 @@ abstract class BaseTracker
 	protected final void batchEvent(String key, String type, Map<String, Object> data)
 	{
 		if (!config.sendEvents())
+		{
+			return;
+		}
+		if (plugin.isRestrictedWorld())
 		{
 			return;
 		}

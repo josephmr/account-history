@@ -4,12 +4,14 @@ import com.google.gson.Gson;
 import com.google.inject.Provides;
 import java.io.File;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.WorldType;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
@@ -122,6 +124,18 @@ public class AccountHistoryPlugin extends Plugin
 	long getCachedAccountHash()
 	{
 		return cachedAccountHash;
+	}
+
+	boolean isRestrictedWorld()
+	{
+		EnumSet<WorldType> types = client.getWorldType();
+		return types.contains(WorldType.SEASONAL)
+			|| types.contains(WorldType.DEADMAN)
+			|| types.contains(WorldType.QUEST_SPEEDRUNNING)
+			|| types.contains(WorldType.NOSAVE_MODE)
+			|| types.contains(WorldType.FRESH_START_WORLD)
+			|| types.contains(WorldType.TOURNAMENT_WORLD)
+			|| types.contains(WorldType.BETA_WORLD);
 	}
 
 	@Provides
