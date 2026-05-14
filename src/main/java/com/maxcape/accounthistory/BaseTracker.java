@@ -33,6 +33,9 @@ abstract class BaseTracker
 	private final Gson gson;
 	private final EventBatcher batcher;
 
+	private String lastKnownPlayerName;
+	private long lastKnownAccountHash;
+
 	BaseTracker(AccountHistoryPlugin plugin, AccountHistoryConfig config,
 				OkHttpClient httpClient, Gson gson, File storeFile)
 	{
@@ -53,13 +56,21 @@ abstract class BaseTracker
 		{
 			return;
 		}
-		long accountHash = plugin.getCachedAccountHash();
+		long accountHash = plugin.getAccountHash();
+		if (accountHash == 0)
+		{
+			accountHash = lastKnownAccountHash;
+		}
 		if (accountHash == 0)
 		{
 			log.debug("sendEvent: no account hash available, dropping {} event", type);
 			return;
 		}
 		String playerName = plugin.getPlayerName();
+		if (playerName == null)
+		{
+			playerName = lastKnownPlayerName;
+		}
 		if (playerName == null)
 		{
 			log.debug("sendEvent: no player name available, dropping {} event", type);
@@ -104,6 +115,16 @@ abstract class BaseTracker
 		if (plugin.isRestrictedWorld())
 		{
 			return;
+		}
+		String name = plugin.getPlayerName();
+		if (name != null)
+		{
+			lastKnownPlayerName = name;
+		}
+		long hash = plugin.getAccountHash();
+		if (hash != 0)
+		{
+			lastKnownAccountHash = hash;
 		}
 		batcher.record(key, type, data);
 	}

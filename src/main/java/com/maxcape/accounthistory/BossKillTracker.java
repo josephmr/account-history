@@ -57,7 +57,7 @@ class BossKillTracker extends BaseTracker
 		{
 			String rawName = m.group(1);
 			String type = m.group(2);
-			totalKc = Integer.parseInt(m.group(3).replace(",", ""));
+			totalKc = parseKc(m.group(3));
 			bossName = normalizeBossName(rawName, type);
 		}
 		else
@@ -66,7 +66,7 @@ class BossKillTracker extends BaseTracker
 			if (m.matches())
 			{
 				bossName = m.group(1);
-				totalKc = Integer.parseInt(m.group(2).replace(",", ""));
+				totalKc = parseKc(m.group(2));
 			}
 		}
 
@@ -113,6 +113,11 @@ class BossKillTracker extends BaseTracker
 				data.get("bossName"), data.get("kills"), data.get("totalKc"));
 			sendEvent(batch.getEventType(), data);
 		});
+	}
+
+	private static int parseKc(String s)
+	{
+		return Integer.parseInt(s.replace(",", ""));
 	}
 
 	private static String normalizeBossName(String rawName, String type)

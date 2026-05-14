@@ -8,7 +8,6 @@ import java.util.EnumSet;
 import java.util.List;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.WorldType;
@@ -44,8 +43,6 @@ public class AccountHistoryPlugin extends Plugin
 	private Gson gson;
 
 	private List<BaseTracker> trackers = Collections.emptyList();
-	private String cachedPlayerName;
-	private long cachedAccountHash;
 
 	@Override
 	protected void startUp()
@@ -68,8 +65,6 @@ public class AccountHistoryPlugin extends Plugin
 	{
 		trackers.forEach(BaseTracker::flush);
 		trackers = Collections.emptyList();
-		cachedPlayerName = null;
-		cachedAccountHash = 0;
 		log.debug("Account History stopped");
 	}
 
@@ -77,19 +72,9 @@ public class AccountHistoryPlugin extends Plugin
 	public void onGameStateChanged(GameStateChanged event)
 	{
 		GameState state = event.getGameState();
-		if (state == GameState.LOGGED_IN)
-		{
-			if (client.getLocalPlayer() != null && client.getLocalPlayer().getName() != null)
-			{
-				cachedPlayerName = client.getLocalPlayer().getName();
-			}
-			cachedAccountHash = client.getAccountHash();
-		}
-		else if (state == GameState.LOGIN_SCREEN || state == GameState.HOPPING)
+		if (state == GameState.LOGIN_SCREEN || state == GameState.HOPPING)
 		{
 			trackers.forEach(BaseTracker::flush);
-			cachedPlayerName = null;
-			cachedAccountHash = 0;
 		}
 		trackers.forEach(t -> t.onGameStateChanged(event));
 	}
@@ -114,16 +99,16 @@ public class AccountHistoryPlugin extends Plugin
 
 	String getPlayerName()
 	{
-		if (client.getLocalPlayer() != null && client.getLocalPlayer().getName() != null)
+		if (client.getLocalPlayer() != null)
 		{
 			return client.getLocalPlayer().getName();
 		}
-		return cachedPlayerName;
+		return null;
 	}
 
-	long getCachedAccountHash()
+	long getAccountHash()
 	{
-		return cachedAccountHash;
+		return client.getAccountHash();
 	}
 
 	boolean isRestrictedWorld()
