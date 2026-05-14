@@ -1,52 +1,55 @@
 package com.maxcape.accounthistory;
 
+import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
+import net.runelite.api.GameState;
 import net.runelite.api.Skill;
+import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.StatChanged;
+import okhttp3.OkHttpClient;
 
+import java.io.File;
 import java.util.EnumMap;
 import java.util.Map;
 
 @Slf4j
-class LevelUpTracker
+class LevelUpTracker extends BaseTracker
 {
 	private final Client client;
-	private final AccountHistoryPlugin plugin;
-	private final AccountHistoryConfig config;
-
 	private final EnumMap<Skill, Integer> previousLevels = new EnumMap<>(Skill.class);
 	private boolean initialized = false;
 
-	LevelUpTracker(Client client, AccountHistoryPlugin plugin, AccountHistoryConfig config)
+	LevelUpTracker(Client client, AccountHistoryPlugin plugin, AccountHistoryConfig config,
+				   OkHttpClient httpClient, Gson gson, File storeFile)
 	{
+		super(plugin, config, httpClient, gson, storeFile);
 		this.client = client;
-		this.plugin = plugin;
-		this.config = config;
 	}
 
-	void onLoggedIn()
+	@Override
+	void onGameStateChanged(GameStateChanged event)
 	{
-		if (initialized)
+		GameState state = event.getGameState();
+		if (state == GameState.LOGGED_IN && !initialized)
 		{
-			return;
+			for (Skill skill : Skill.values())
+			{
+				previousLevels.put(skill, client.getRealSkillLevel(skill));
+			}
+			initialized = true;
 		}
-		for (Skill skill : Skill.values())
+		else if (state == GameState.LOGIN_SCREEN || state == GameState.HOPPING)
 		{
-			previousLevels.put(skill, client.getRealSkillLevel(skill));
+			previousLevels.clear();
+			initialized = false;
 		}
-		initialized = true;
 	}
 
-	void onLoggedOut()
-	{
-		previousLevels.clear();
-		initialized = false;
-	}
-
+	@Override
 	void onStatChanged(StatChanged event)
 	{
-		if (!initialized || !config.sendEvents())
+		if (!initialized)
 		{
 			return;
 		}
@@ -57,7 +60,7 @@ class LevelUpTracker
 		if (oldLevel > 0 && newLevel > oldLevel)
 		{
 			log.debug("Skill level up: {} -> {}", skill.getName(), newLevel);
-			plugin.sendEvent("SKILL_LEVEL_UP", Map.of("skill", skill.getName(), "level", newLevel));
+			sendEvent("SKILL_LEVEL_UP", Map.of("skill", skill.getName(), "level", newLevel));
 		}
 	}
 }
