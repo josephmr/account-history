@@ -27,7 +27,7 @@ abstract class BaseTracker
 	private static final String API_URL = "https://maxcape.net/api/events";
 	private static final MediaType JSON = MediaType.parse("application/json");
 
-	private final AccountHistoryPlugin plugin;
+	protected final AccountHistoryPlugin plugin;
 	private final AccountHistoryConfig config;
 	private final OkHttpClient httpClient;
 	private final Gson gson;
