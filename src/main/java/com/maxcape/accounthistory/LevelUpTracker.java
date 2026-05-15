@@ -18,7 +18,6 @@ class LevelUpTracker extends BaseTracker
 {
 	private final Client client;
 	private final EnumMap<Skill, Integer> previousLevels = new EnumMap<>(Skill.class);
-	private boolean initialized = false;
 
 	LevelUpTracker(Client client, AccountHistoryPlugin plugin, AccountHistoryConfig config,
 				   OkHttpClient httpClient, Gson gson, File storeFile)
@@ -31,18 +30,12 @@ class LevelUpTracker extends BaseTracker
 	void onGameStateChanged(GameStateChanged event)
 	{
 		GameState state = event.getGameState();
-		if (state == GameState.LOGGED_IN && !initialized)
+		if (state == GameState.LOGGED_IN)
 		{
 			for (Skill skill : Skill.values())
 			{
 				previousLevels.put(skill, client.getRealSkillLevel(skill));
 			}
-			initialized = true;
-		}
-		else if (state == GameState.LOGIN_SCREEN || state == GameState.HOPPING)
-		{
-			previousLevels.clear();
-			initialized = false;
 		}
 	}
 
