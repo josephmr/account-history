@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Slf4j
+@Slf4j(topic = "maxcape.CollectionLogTracker")
 class CollectionLogTracker extends BaseTracker
 {
 	private static final Pattern COLLECTION_LOG_PATTERN =

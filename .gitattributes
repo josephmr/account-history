@@ -1,0 +1,11 @@
+# Normalize all text files to LF on commit
+* text=auto eol=lf
+
+# Explicitly mark binaries so git never touches their bytes
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.ico  binary
+*.jar  binary
+*.zip  binary
+*.class binary

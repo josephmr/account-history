@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Slf4j
+@Slf4j(topic = "maxcape.DiaryTracker")
 class DiaryTracker extends BaseTracker
 {
 	private static final Pattern DIARY_PATTERN = Pattern.compile(

@@ -21,7 +21,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-@Slf4j
+@Slf4j(topic = "maxcape.BaseTracker")
 abstract class BaseTracker
 {
 	private static final String API_URL = "https://maxcape.net/api/events";

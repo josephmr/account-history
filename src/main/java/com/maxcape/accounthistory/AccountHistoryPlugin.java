@@ -22,7 +22,7 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import okhttp3.OkHttpClient;
 
-@Slf4j
+@Slf4j(topic = "maxcape.AccountHistoryPlugin")
 @PluginDescriptor(
 	name = "Account History",
 	description = "Tracks skill level ups, collection log entries, boss kills, and achievement diaries",

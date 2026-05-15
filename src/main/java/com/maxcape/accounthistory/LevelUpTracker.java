@@ -13,7 +13,7 @@ import java.io.File;
 import java.util.EnumMap;
 import java.util.Map;
 
-@Slf4j
+@Slf4j(topic = "maxcape.LevelUpTracker")
 class LevelUpTracker extends BaseTracker
 {
 	private final Client client;

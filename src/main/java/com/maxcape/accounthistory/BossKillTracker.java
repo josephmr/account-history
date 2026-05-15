@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Slf4j
+@Slf4j(topic = "maxcape.BossKillTracker")
 class BossKillTracker extends BaseTracker
 {
 	// "Your X kill/chest/completion/harvest/success/opened count is: N"
