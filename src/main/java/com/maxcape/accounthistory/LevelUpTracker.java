@@ -6,6 +6,7 @@ import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.Skill;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.GameTick;
 import net.runelite.api.events.StatChanged;
 import okhttp3.OkHttpClient;
 
@@ -16,8 +17,15 @@ import java.util.Map;
 @Slf4j(topic = "maxcape.LevelUpTracker")
 class LevelUpTracker extends BaseTracker
 {
+	private static final int INIT_TICKS = 10;
+	private static final int SKILL_COUNT = Skill.values().length;
+
 	private final Client client;
 	private final EnumMap<Skill, Integer> previousLevels = new EnumMap<>(Skill.class);
+
+	// -1 = not started; >= 0 = counting toward next init attempt
+	private int initTicksWaited = -1;
+	private boolean initialized = false;
 
 	LevelUpTracker(Client client, AccountHistoryPlugin plugin, AccountHistoryConfig config,
 				   OkHttpClient httpClient, Gson gson, File storeFile)
@@ -32,16 +40,56 @@ class LevelUpTracker extends BaseTracker
 		GameState state = event.getGameState();
 		if (state == GameState.LOGGED_IN)
 		{
-			for (Skill skill : Skill.values())
+			initialized = false;
+			previousLevels.clear();
+			initTicksWaited = 0;
+		}
+		else if (state == GameState.LOGIN_SCREEN)
+		{
+			initialized = false;
+			previousLevels.clear();
+			initTicksWaited = -1;
+		}
+	}
+
+	@Override
+	void onGameTick(GameTick event)
+	{
+		if (initialized || initTicksWaited < 0)
+		{
+			return;
+		}
+		if (++initTicksWaited >= INIT_TICKS)
+		{
+			initLevels();
+			initTicksWaited = 0;
+		}
+	}
+
+	private void initLevels()
+	{
+		for (Skill skill : Skill.values())
+		{
+			int level = client.getRealSkillLevel(skill);
+			if (level > 0)
 			{
-				previousLevels.put(skill, client.getRealSkillLevel(skill));
+				previousLevels.put(skill, level);
 			}
+		}
+		if (previousLevels.size() >= SKILL_COUNT)
+		{
+			initialized = true;
+			log.debug("Level tracker initialized with {} skills", previousLevels.size());
 		}
 	}
 
 	@Override
 	void onStatChanged(StatChanged event)
 	{
+		if (!initialized)
+		{
+			return;
+		}
 		Skill skill = event.getSkill();
 		int newLevel = event.getLevel();
 		int oldLevel = previousLevels.getOrDefault(skill, 0);
