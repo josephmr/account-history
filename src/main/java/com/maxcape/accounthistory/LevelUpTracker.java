@@ -42,10 +42,6 @@ class LevelUpTracker extends BaseTracker
 	@Override
 	void onStatChanged(StatChanged event)
 	{
-		if (!initialized)
-		{
-			return;
-		}
 		Skill skill = event.getSkill();
 		int newLevel = event.getLevel();
 		int oldLevel = previousLevels.getOrDefault(skill, 0);
