@@ -31,7 +31,8 @@ class DiaryTracker extends BaseTracker
 		{
 			return;
 		}
-		Matcher m = DIARY_PATTERN.matcher(event.getMessage());
+		String message = event.getMessage().replaceAll("<[^>]+>", "");
+		Matcher m = DIARY_PATTERN.matcher(message);
 		if (!m.matches())
 		{
 			return;
