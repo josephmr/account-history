@@ -17,9 +17,16 @@ import java.util.Map;
 
 @Slf4j(topic = "maxcape.QuestTracker")
 class QuestTracker extends BaseTracker {
+	// 500 ticks (~5 minutes) after the first varbit change before we check quest
+	// states.
+	// Varbits change very frequently; this avoids running getState() for every
+	// quest each tick.
+	private static final int CHECK_DELAY_TICKS = 500;
+	private static final Quest[] QUESTS = Quest.values();
+
 	private final Client client;
 	private final EnumMap<Quest, QuestState> prevStates = new EnumMap<>(Quest.class);
-	private boolean dirty;
+	private int ticksUntilCheck;
 
 	QuestTracker(Client client, AccountHistoryPlugin plugin, AccountHistoryConfig config,
 			OkHttpClient httpClient, Gson gson, File storeFile) {
@@ -32,24 +39,39 @@ class QuestTracker extends BaseTracker {
 		GameState state = event.getGameState();
 		if (state == GameState.LOGIN_SCREEN || state == GameState.HOPPING) {
 			prevStates.clear();
-			dirty = false;
+			ticksUntilCheck = 0;
 		}
 	}
 
 	@Override
 	void onVarbitChanged(VarbitChanged event) {
-		dirty = true;
+		if (ticksUntilCheck == 0) {
+			ticksUntilCheck = CHECK_DELAY_TICKS;
+		}
 	}
 
 	@Override
 	void onGameTick(GameTick event) {
-		if (!dirty) {
-			return;
+		if (ticksUntilCheck > 0 && --ticksUntilCheck == 0) {
+			checkQuestStates();
 		}
-		dirty = false;
-		for (Quest quest : Quest.values()) {
+	}
+
+	@Override
+	void flush() {
+		if (ticksUntilCheck > 0) {
+			ticksUntilCheck = 0;
+			checkQuestStates();
+		}
+		super.flush();
+	}
+
+	private void checkQuestStates() {
+		for (Quest quest : QUESTS) {
 			QuestState curr = quest.getState(client);
 			QuestState prev = prevStates.put(quest, curr);
+			// prev == null on the first check after login — skip to avoid re-firing
+			// events for quests already completed before this session started.
 			if (prev != null && prev != QuestState.FINISHED && curr == QuestState.FINISHED) {
 				log.debug("Quest completed: {}", quest.getName());
 				sendEvent("QUEST_COMPLETED", Map.of("questName", quest.getName()));
