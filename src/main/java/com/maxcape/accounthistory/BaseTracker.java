@@ -6,6 +6,7 @@ import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.StatChanged;
+import net.runelite.api.events.VarbitChanged;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
@@ -147,5 +148,6 @@ abstract class BaseTracker
 	void onGameStateChanged(GameStateChanged event) {}
 	void onStatChanged(StatChanged event) {}
 	void onChatMessage(ChatMessage event) {}
+	void onVarbitChanged(VarbitChanged event) {}
 	void onGameTick(GameTick event) {}
 }

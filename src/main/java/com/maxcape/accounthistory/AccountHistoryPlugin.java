@@ -15,6 +15,7 @@ import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.StatChanged;
+import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.RuneLite;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -25,8 +26,8 @@ import okhttp3.OkHttpClient;
 @Slf4j(topic = "maxcape.AccountHistoryPlugin")
 @PluginDescriptor(
 	name = "Account History",
-	description = "Tracks skill level ups, collection log entries, boss kills, and achievement diaries",
-	tags = {"skill", "collection log", "tracker", "history", "boss", "diary"}
+	description = "Tracks skill level ups, collection log entries, boss kills, achievement diaries, and quests",
+	tags = {"skill", "collection log", "tracker", "history", "boss", "diary", "quest"}
 )
 public class AccountHistoryPlugin extends Plugin
 {
@@ -54,7 +55,8 @@ public class AccountHistoryPlugin extends Plugin
 			new LevelUpTracker(client, this, config, httpClient, gson, new File(dir, "level-up-pending.json")),
 			new CollectionLogTracker(this, config, httpClient, gson, new File(dir, "collection-log-pending.json")),
 			new BossKillTracker(this, config, httpClient, gson, new File(dir, "boss-kill-pending.json")),
-			new DiaryTracker(this, config, httpClient, gson, new File(dir, "diary-pending.json"))
+			new DiaryTracker(this, config, httpClient, gson, new File(dir, "diary-pending.json")),
+			new QuestTracker(client, this, config, httpClient, gson, new File(dir, "quest-completed-pending.json"))
 		);
 		trackers.forEach(BaseTracker::loadBatch);
 		log.debug("Account History started");
@@ -89,6 +91,12 @@ public class AccountHistoryPlugin extends Plugin
 	public void onChatMessage(ChatMessage event)
 	{
 		trackers.forEach(t -> t.onChatMessage(event));
+	}
+
+	@Subscribe
+	public void onVarbitChanged(VarbitChanged event)
+	{
+		trackers.forEach(t -> t.onVarbitChanged(event));
 	}
 
 	@Subscribe
