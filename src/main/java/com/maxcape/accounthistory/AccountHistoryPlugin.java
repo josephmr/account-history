@@ -15,6 +15,7 @@ import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.StatChanged;
 import net.runelite.api.events.VarbitChanged;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
@@ -41,6 +42,9 @@ public class AccountHistoryPlugin extends Plugin
 	@Inject
 	private Gson gson;
 
+	@Inject
+	private ClientThread clientThread;
+
 	private List<BaseTracker> trackers = Collections.emptyList();
 
 	@Override
@@ -56,16 +60,20 @@ public class AccountHistoryPlugin extends Plugin
 		);
 		log.debug("Account History started");
 
-		GameStateChanged initialGameState = new GameStateChanged();
-		initialGameState.setGameState(client.getGameState());
-		trackers.forEach((tracker) -> tracker.onGameStateChanged(initialGameState));
+		clientThread.invoke(() -> {
+			GameStateChanged initialGameState = new GameStateChanged();
+			initialGameState.setGameState(client.getGameState());
+			trackers.forEach((tracker) -> tracker.onGameStateChanged(initialGameState));
+		});
 	}
 
 	@Override
 	protected void shutDown()
 	{
-		trackers.forEach(BaseTracker::flush);
-		trackers = Collections.emptyList();
+		clientThread.invoke(() -> {
+			trackers.forEach(BaseTracker::flush);
+			trackers = Collections.emptyList();
+		});
 		log.debug("Account History stopped");
 	}
 

@@ -64,13 +64,7 @@ class QuestTracker extends BaseTracker {
 	void flush() {
 		if (ticksElapsed >= 0) {
 			ticksElapsed = -1;
-			try {
-				checkQuestStates();
-			} catch (Exception e) {
-				// quest.getState will throw during plugin shutdown, silently ignore since we
-				// cannot do anything about it at this point
-			}
-
+			checkQuestStates();
 		}
 	}
 
