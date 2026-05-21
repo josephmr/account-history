@@ -6,7 +6,6 @@ import net.runelite.api.ChatMessageType;
 import net.runelite.api.events.ChatMessage;
 import okhttp3.OkHttpClient;
 
-import java.io.File;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -18,9 +17,9 @@ class CollectionLogTracker extends BaseTracker
 		Pattern.compile("New item added to your collection log: (.+)");
 
 	CollectionLogTracker(AccountHistoryPlugin plugin, AccountHistoryConfig config,
-						 OkHttpClient httpClient, Gson gson, File storeFile)
+						 OkHttpClient httpClient, Gson gson)
 	{
-		super(plugin, config, httpClient, gson, storeFile);
+		super(plugin, config, httpClient, gson);
 	}
 
 	@Override

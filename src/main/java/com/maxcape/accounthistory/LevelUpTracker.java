@@ -8,7 +8,6 @@ import net.runelite.api.events.GameTick;
 import net.runelite.api.events.StatChanged;
 import okhttp3.OkHttpClient;
 
-import java.io.File;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -26,9 +25,9 @@ class LevelUpTracker extends BaseTracker
 	private boolean initialized = false;
 
 	LevelUpTracker(Client client, AccountHistoryPlugin plugin, AccountHistoryConfig config,
-				   OkHttpClient httpClient, Gson gson, File storeFile)
+				   OkHttpClient httpClient, Gson gson)
 	{
-		super(plugin, config, httpClient, gson, storeFile);
+		super(plugin, config, httpClient, gson);
 		this.client = client;
 	}
 

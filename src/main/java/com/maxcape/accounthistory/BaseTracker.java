@@ -15,11 +15,9 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 @Slf4j(topic = "maxcape.BaseTracker")
@@ -32,7 +30,6 @@ abstract class BaseTracker
 	private final AccountHistoryConfig config;
 	private final OkHttpClient httpClient;
 	private final Gson gson;
-	private final EventBatcher batcher;
 
 	private boolean loggedIn = false;
 	private boolean pendingLogin = false;
@@ -41,13 +38,12 @@ abstract class BaseTracker
 	private long lastKnownAccountHash;
 
 	BaseTracker(AccountHistoryPlugin plugin, AccountHistoryConfig config,
-				OkHttpClient httpClient, Gson gson, File storeFile)
+				OkHttpClient httpClient, Gson gson)
 	{
 		this.plugin = plugin;
 		this.config = config;
 		this.httpClient = httpClient;
 		this.gson = gson;
-		this.batcher = new EventBatcher(storeFile, gson);
 	}
 
 	protected final void sendEvent(String type, Object data)
@@ -110,43 +106,7 @@ abstract class BaseTracker
 		});
 	}
 
-	protected final void batchEvent(String key, String type, Map<String, Object> data)
-	{
-		if (!config.sendEvents())
-		{
-			return;
-		}
-		if (plugin.isRestrictedWorld())
-		{
-			return;
-		}
-		String name = plugin.getPlayerName();
-		if (name != null)
-		{
-			lastKnownPlayerName = name;
-		}
-		long hash = plugin.getAccountHash();
-		if (hash != 0)
-		{
-			lastKnownAccountHash = hash;
-		}
-		batcher.record(key, type, data);
-	}
-
-	protected final List<EventBatcher.PendingBatch> drainBatch()
-	{
-		return batcher.drain();
-	}
-
-	void flush()
-	{
-		drainBatch().forEach(batch -> sendEvent(batch.getEventType(), batch.getExtraData()));
-	}
-
-	void loadBatch()
-	{
-		batcher.load();
-	}
+	void flush() {}
 
 	void onGameStateChanged(GameStateChanged event)
 	{

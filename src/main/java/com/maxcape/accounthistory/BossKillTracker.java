@@ -4,11 +4,8 @@ import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.events.ChatMessage;
-import net.runelite.api.events.GameTick;
 import okhttp3.OkHttpClient;
 
-import java.io.File;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -22,14 +19,11 @@ class BossKillTracker extends BaseTracker
 	// "Your (completed|subdued) X count is: N" — raids, Wintertodt
 	private static final Pattern SECONDARY_PATTERN =
 		Pattern.compile("Your (?:completed|subdued) (.+?) count is: ([\\d,]+)\\.");
-	private static final int FLUSH_TICKS = 500;
-
-	private int tickCount;
 
 	BossKillTracker(AccountHistoryPlugin plugin, AccountHistoryConfig config,
-					OkHttpClient httpClient, Gson gson, File storeFile)
+					OkHttpClient httpClient, Gson gson)
 	{
-		super(plugin, config, httpClient, gson, storeFile);
+		super(plugin, config, httpClient, gson);
 	}
 
 	@Override
@@ -75,39 +69,7 @@ class BossKillTracker extends BaseTracker
 		}
 
 		log.debug("Boss kill recorded: boss='{}' totalKc={}", bossName, totalKc);
-		batchEvent(bossName, "BOSS_KILL", Map.of("bossName", bossName, "totalKc", totalKc));
-	}
-
-	@Override
-	void onLogout()
-	{
-		log.debug("Logout detected, resetting flush timer");
-		tickCount = 0;
-	}
-
-	@Override
-	void onGameTick(GameTick event)
-	{
-		if (++tickCount >= FLUSH_TICKS)
-		{
-			tickCount = 0;
-			flush();
-		}
-	}
-
-	@Override
-	void flush()
-	{
-		drainBatch().forEach(batch ->
-		{
-			Map<String, Object> data = new LinkedHashMap<>(batch.getExtraData());
-			data.put("kills", batch.getCount());
-			data.put("periodStart", batch.getFirstAt());
-			data.put("periodEnd", batch.getLastAt());
-			log.debug("Boss kills sent: boss='{}' kills={} totalKc={}",
-				data.get("bossName"), data.get("kills"), data.get("totalKc"));
-			sendEvent(batch.getEventType(), data);
-		});
+		sendEvent("BOSS_KILL", Map.of("bossName", bossName, "totalKc", totalKc));
 	}
 
 	private static int parseKc(String s)

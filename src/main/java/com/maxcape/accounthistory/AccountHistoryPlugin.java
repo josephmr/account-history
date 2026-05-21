@@ -2,7 +2,6 @@ package com.maxcape.accounthistory;
 
 import com.google.gson.Gson;
 import com.google.inject.Provides;
-import java.io.File;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -16,7 +15,6 @@ import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.StatChanged;
 import net.runelite.api.events.VarbitChanged;
-import net.runelite.client.RuneLite;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
@@ -48,17 +46,14 @@ public class AccountHistoryPlugin extends Plugin
 	@Override
 	protected void startUp()
 	{
-		File dir = new File(RuneLite.RUNELITE_DIR, "account-history");
-		dir.mkdirs();
 		trackers = List.of(
-			new AccountIdentifyTracker(this, config, httpClient, gson, new File(dir, "account-identify-pending.json")),
-			new LevelUpTracker(client, this, config, httpClient, gson, new File(dir, "level-up-pending.json")),
-			new CollectionLogTracker(this, config, httpClient, gson, new File(dir, "collection-log-pending.json")),
-			new BossKillTracker(this, config, httpClient, gson, new File(dir, "boss-kill-pending.json")),
-			new DiaryTracker(this, config, httpClient, gson, new File(dir, "diary-pending.json")),
-			new QuestTracker(client, this, config, httpClient, gson, new File(dir, "quest-completed-pending.json"))
+			new AccountIdentifyTracker(this, config, httpClient, gson),
+			new LevelUpTracker(client, this, config, httpClient, gson),
+			new CollectionLogTracker(this, config, httpClient, gson),
+			new BossKillTracker(this, config, httpClient, gson),
+			new DiaryTracker(this, config, httpClient, gson),
+			new QuestTracker(client, this, config, httpClient, gson)
 		);
-		trackers.forEach(BaseTracker::loadBatch);
 		log.debug("Account History started");
 
 		GameStateChanged initialGameState = new GameStateChanged();

@@ -9,7 +9,6 @@ import net.runelite.api.events.GameTick;
 import net.runelite.api.events.VarbitChanged;
 import okhttp3.OkHttpClient;
 
-import java.io.File;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -27,8 +26,8 @@ class QuestTracker extends BaseTracker {
 	private int ticksElapsed = -1; // -1 = inactive, >=0 = ticks elapsed since armed
 
 	QuestTracker(Client client, AccountHistoryPlugin plugin, AccountHistoryConfig config,
-			OkHttpClient httpClient, Gson gson, File storeFile) {
-		super(plugin, config, httpClient, gson, storeFile);
+			OkHttpClient httpClient, Gson gson) {
+		super(plugin, config, httpClient, gson);
 		this.client = client;
 	}
 
@@ -67,7 +66,6 @@ class QuestTracker extends BaseTracker {
 			ticksElapsed = -1;
 			checkQuestStates();
 		}
-		super.flush();
 	}
 
 	private void checkQuestStates() {
