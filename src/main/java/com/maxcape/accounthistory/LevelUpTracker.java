@@ -3,9 +3,7 @@ package com.maxcape.accounthistory;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
-import net.runelite.api.GameState;
 import net.runelite.api.Skill;
-import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.StatChanged;
 import okhttp3.OkHttpClient;
@@ -35,21 +33,21 @@ class LevelUpTracker extends BaseTracker
 	}
 
 	@Override
-	void onGameStateChanged(GameStateChanged event)
+	void onLogin()
 	{
-		GameState state = event.getGameState();
-		if (state == GameState.LOGGED_IN)
-		{
-			initialized = false;
-			previousLevels.clear();
-			initTicksWaited = 0;
-		}
-		else if (state == GameState.LOGIN_SCREEN)
-		{
-			initialized = false;
-			previousLevels.clear();
-			initTicksWaited = -1;
-		}
+		log.debug("Login detected, starting level initialization");
+		initialized = false;
+		previousLevels.clear();
+		initTicksWaited = 0;
+	}
+
+	@Override
+	void onLogout()
+	{
+		log.debug("Logout detected, clearing level state");
+		initialized = false;
+		previousLevels.clear();
+		initTicksWaited = -1;
 	}
 
 	@Override

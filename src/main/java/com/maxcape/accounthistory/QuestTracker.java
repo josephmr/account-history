@@ -3,10 +3,8 @@ package com.maxcape.accounthistory;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
-import net.runelite.api.GameState;
 import net.runelite.api.Quest;
 import net.runelite.api.QuestState;
-import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.VarbitChanged;
 import okhttp3.OkHttpClient;
@@ -35,12 +33,10 @@ class QuestTracker extends BaseTracker {
 	}
 
 	@Override
-	void onGameStateChanged(GameStateChanged event) {
-		GameState state = event.getGameState();
-		if (state == GameState.LOGIN_SCREEN || state == GameState.HOPPING) {
-			prevStates.clear();
-			ticksUntilCheck = 0;
-		}
+	void onLogout() {
+		log.debug("Logout detected, clearing quest state");
+		prevStates.clear();
+		ticksUntilCheck = 0;
 	}
 
 	@Override
@@ -67,6 +63,7 @@ class QuestTracker extends BaseTracker {
 	}
 
 	private void checkQuestStates() {
+		boolean initializing = prevStates.isEmpty();
 		for (Quest quest : QUESTS) {
 			QuestState curr = quest.getState(client);
 			QuestState prev = prevStates.put(quest, curr);
@@ -76,6 +73,9 @@ class QuestTracker extends BaseTracker {
 				log.debug("Quest completed: {}", quest.getName());
 				sendEvent("QUEST_COMPLETED", Map.of("questName", quest.getName()));
 			}
+		}
+		if (initializing) {
+			log.debug("Quest state initialized with {} quests", prevStates.size());
 		}
 	}
 }

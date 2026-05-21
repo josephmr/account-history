@@ -3,9 +3,7 @@ package com.maxcape.accounthistory;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
-import net.runelite.api.GameState;
 import net.runelite.api.events.ChatMessage;
-import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import okhttp3.OkHttpClient;
 
@@ -81,13 +79,10 @@ class BossKillTracker extends BaseTracker
 	}
 
 	@Override
-	void onGameStateChanged(GameStateChanged event)
+	void onLogout()
 	{
-		GameState state = event.getGameState();
-		if (state == GameState.LOGIN_SCREEN || state == GameState.HOPPING)
-		{
-			tickCount = 0;
-		}
+		log.debug("Logout detected, resetting flush timer");
+		tickCount = 0;
 	}
 
 	@Override

@@ -34,6 +34,8 @@ abstract class BaseTracker
 	private final Gson gson;
 	private final EventBatcher batcher;
 
+	private boolean pendingLogin = false;
+
 	private String lastKnownPlayerName;
 	private long lastKnownAccountHash;
 
@@ -145,7 +147,29 @@ abstract class BaseTracker
 		batcher.load();
 	}
 
-	void onGameStateChanged(GameStateChanged event) {}
+	void onGameStateChanged(GameStateChanged event)
+	{
+		switch (event.getGameState())
+		{
+			case LOGIN_SCREEN:
+			case HOPPING:
+				pendingLogin = true;
+				onLogout();
+				break;
+			case LOGGED_IN:
+				if (pendingLogin)
+				{
+					pendingLogin = false;
+					onLogin();
+				}
+				break;
+			default:
+				break;
+		}
+	}
+
+	void onLogin() {}
+	void onLogout() {}
 	void onStatChanged(StatChanged event) {}
 	void onChatMessage(ChatMessage event) {}
 	void onVarbitChanged(VarbitChanged event) {}

@@ -2,7 +2,6 @@ package com.maxcape.accounthistory;
 
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import okhttp3.OkHttpClient;
 
@@ -12,7 +11,6 @@ import java.util.Map;
 @Slf4j(topic = "maxcape.AccountIdentifyTracker")
 class AccountIdentifyTracker extends BaseTracker {
 	private boolean shouldSendIdentify = true;
-	private boolean pendingLogin = false;
 
 	AccountIdentifyTracker(AccountHistoryPlugin plugin, AccountHistoryConfig config,
 			OkHttpClient httpClient, Gson gson, File storeFile) {
@@ -20,22 +18,15 @@ class AccountIdentifyTracker extends BaseTracker {
 	}
 
 	@Override
-	void onGameStateChanged(GameStateChanged event) {
-		switch (event.getGameState()) {
-			case LOGIN_SCREEN:
-			case HOPPING:
-				pendingLogin = true;
-				shouldSendIdentify = false;
-				break;
-			case LOGGED_IN:
-				if (pendingLogin) {
-					shouldSendIdentify = true;
-					pendingLogin = false;
-				}
-				break;
-			default:
-				break;
-		}
+	void onLogin() {
+		log.debug("Login detected, arming identify");
+		shouldSendIdentify = true;
+	}
+
+	@Override
+	void onLogout() {
+		log.debug("Logout detected, clearing identify flag");
+		shouldSendIdentify = false;
 	}
 
 	@Override
