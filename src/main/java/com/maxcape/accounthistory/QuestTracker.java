@@ -24,7 +24,7 @@ class QuestTracker extends BaseTracker {
 
 	private final Client client;
 	private final EnumMap<Quest, QuestState> prevStates = new EnumMap<>(Quest.class);
-	private int ticksUntilCheck;
+	private int ticksElapsed = -1; // -1 = inactive, >=0 = ticks elapsed since armed
 
 	QuestTracker(Client client, AccountHistoryPlugin plugin, AccountHistoryConfig config,
 			OkHttpClient httpClient, Gson gson, File storeFile) {
@@ -36,34 +36,35 @@ class QuestTracker extends BaseTracker {
 	void onLogin() {
 		log.debug("Login detected, initializing quest state");
 		prevStates.clear();
-		ticksUntilCheck = 1;
+		ticksElapsed = CHECK_DELAY_TICKS - 10;
 	}
 
 	@Override
 	void onLogout() {
 		log.debug("Logout detected, clearing quest state");
 		prevStates.clear();
-		ticksUntilCheck = 0;
+		ticksElapsed = -1;
 	}
 
 	@Override
 	void onVarbitChanged(VarbitChanged event) {
-		if (ticksUntilCheck == 0) {
-			ticksUntilCheck = CHECK_DELAY_TICKS;
+		if (ticksElapsed < 0) {
+			ticksElapsed = 0;
 		}
 	}
 
 	@Override
 	void onGameTick(GameTick event) {
-		if (ticksUntilCheck > 0 && --ticksUntilCheck == 0) {
+		if (ticksElapsed >= 0 && ++ticksElapsed >= CHECK_DELAY_TICKS) {
+			ticksElapsed = -1;
 			checkQuestStates();
 		}
 	}
 
 	@Override
 	void flush() {
-		if (ticksUntilCheck > 0) {
-			ticksUntilCheck = 0;
+		if (ticksElapsed >= 0) {
+			ticksElapsed = -1;
 			checkQuestStates();
 		}
 		super.flush();

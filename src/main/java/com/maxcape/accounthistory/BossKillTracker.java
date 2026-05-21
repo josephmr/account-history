@@ -40,7 +40,7 @@ class BossKillTracker extends BaseTracker
 			return;
 		}
 
-		String message = event.getMessage().replaceAll("<[^>]+>", "");
+		String message = stripTags(event.getMessage());
 
 		if (!message.contains("count is:"))
 		{

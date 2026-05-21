@@ -36,18 +36,21 @@ class LevelUpTracker extends BaseTracker
 	void onLogin()
 	{
 		log.debug("Login detected, starting level initialization");
-		initialized = false;
-		previousLevels.clear();
-		initTicksWaited = 0;
+		resetState(0);
 	}
 
 	@Override
 	void onLogout()
 	{
 		log.debug("Logout detected, clearing level state");
+		resetState(-1);
+	}
+
+	private void resetState(int initTicks)
+	{
 		initialized = false;
 		previousLevels.clear();
-		initTicksWaited = -1;
+		initTicksWaited = initTicks;
 	}
 
 	@Override

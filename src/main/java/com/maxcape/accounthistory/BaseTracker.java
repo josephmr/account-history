@@ -34,7 +34,7 @@ abstract class BaseTracker
 	private final Gson gson;
 	private final EventBatcher batcher;
 
-	private boolean initializedGameState = false;
+	private boolean loggedIn = false;
 	private boolean pendingLogin = false;
 
 	private String lastKnownPlayerName;
@@ -155,22 +155,28 @@ abstract class BaseTracker
 			case LOGIN_SCREEN:
 			case HOPPING:
 				pendingLogin = true;
-				if (initializedGameState) {
+				if (loggedIn)
+				{
+					loggedIn = false;
 					onLogout();
-				} else {
-					initializedGameState = true;
 				}
 				break;
 			case LOGGED_IN:
-				if (pendingLogin)
+				if (pendingLogin || !loggedIn)
 				{
 					pendingLogin = false;
+					loggedIn = true;
 					onLogin();
 				}
 				break;
 			default:
 				break;
 		}
+	}
+
+	protected static String stripTags(String s)
+	{
+		return s.replaceAll("<[^>]+>", "");
 	}
 
 	void onLogin() {}

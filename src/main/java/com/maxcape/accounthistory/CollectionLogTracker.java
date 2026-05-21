@@ -30,7 +30,7 @@ class CollectionLogTracker extends BaseTracker
 		{
 			return;
 		}
-		String message = event.getMessage().replaceAll("<[^>]+>", "");
+		String message = stripTags(event.getMessage());
 		Matcher matcher = COLLECTION_LOG_PATTERN.matcher(message);
 		if (matcher.matches())
 		{
