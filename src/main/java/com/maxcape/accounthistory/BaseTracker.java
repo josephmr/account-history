@@ -34,6 +34,7 @@ abstract class BaseTracker
 	private final Gson gson;
 	private final EventBatcher batcher;
 
+	private boolean initializedGameState = false;
 	private boolean pendingLogin = false;
 
 	private String lastKnownPlayerName;
@@ -154,7 +155,11 @@ abstract class BaseTracker
 			case LOGIN_SCREEN:
 			case HOPPING:
 				pendingLogin = true;
-				onLogout();
+				if (initializedGameState) {
+					onLogout();
+				} else {
+					initializedGameState = true;
+				}
 				break;
 			case LOGGED_IN:
 				if (pendingLogin)

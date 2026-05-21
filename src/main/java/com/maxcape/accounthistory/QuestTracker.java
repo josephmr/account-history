@@ -33,6 +33,13 @@ class QuestTracker extends BaseTracker {
 	}
 
 	@Override
+	void onLogin() {
+		log.debug("Login detected, initializing quest state");
+		prevStates.clear();
+		ticksUntilCheck = 1;
+	}
+
+	@Override
 	void onLogout() {
 		log.debug("Logout detected, clearing quest state");
 		prevStates.clear();

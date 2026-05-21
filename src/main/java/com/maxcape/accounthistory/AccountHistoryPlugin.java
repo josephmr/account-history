@@ -60,6 +60,10 @@ public class AccountHistoryPlugin extends Plugin
 		);
 		trackers.forEach(BaseTracker::loadBatch);
 		log.debug("Account History started");
+
+		GameStateChanged initialGameState = new GameStateChanged();
+		initialGameState.setGameState(client.getGameState());
+		trackers.forEach((tracker) -> tracker.onGameStateChanged(initialGameState));
 	}
 
 	@Override
