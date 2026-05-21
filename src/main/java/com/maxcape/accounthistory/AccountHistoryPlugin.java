@@ -24,7 +24,7 @@ import okhttp3.OkHttpClient;
 
 @Slf4j(topic = "maxcape.AccountHistoryPlugin")
 @PluginDescriptor(
-	name = "Account History",
+	name = "MaxCape",
 	description = "Tracks skill level ups, collection log entries, boss kills, achievement diaries, and quests",
 	tags = {"skill", "collection log", "tracker", "history", "boss", "diary", "quest"}
 )
@@ -58,7 +58,7 @@ public class AccountHistoryPlugin extends Plugin
 			new DiaryTracker(this, config, httpClient, gson),
 			new QuestTracker(client, this, config, httpClient, gson)
 		);
-		log.debug("Account History started");
+		log.debug("MaxCape started");
 
 		clientThread.invoke(() -> {
 			GameStateChanged initialGameState = new GameStateChanged();
@@ -73,7 +73,7 @@ public class AccountHistoryPlugin extends Plugin
 		List<BaseTracker> toFlush = trackers;
 		trackers = Collections.emptyList();
 		clientThread.invoke(() -> toFlush.forEach(BaseTracker::flush));
-		log.debug("Account History stopped");
+		log.debug("MaxCape stopped");
 	}
 
 	@Subscribe
