@@ -70,10 +70,9 @@ public class AccountHistoryPlugin extends Plugin
 	@Override
 	protected void shutDown()
 	{
-		clientThread.invoke(() -> {
-			trackers.forEach(BaseTracker::flush);
-			trackers = Collections.emptyList();
-		});
+		List<BaseTracker> toFlush = trackers;
+		trackers = Collections.emptyList();
+		clientThread.invoke(() -> toFlush.forEach(BaseTracker::flush));
 		log.debug("Account History stopped");
 	}
 
