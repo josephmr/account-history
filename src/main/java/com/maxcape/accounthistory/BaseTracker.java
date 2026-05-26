@@ -27,7 +27,6 @@ abstract class BaseTracker
 	private static final MediaType JSON = MediaType.parse("application/json");
 
 	protected final AccountHistoryPlugin plugin;
-	private final AccountHistoryConfig config;
 	private final OkHttpClient httpClient;
 	private final Gson gson;
 
@@ -37,21 +36,15 @@ abstract class BaseTracker
 	private String lastKnownPlayerName;
 	private long lastKnownAccountHash;
 
-	BaseTracker(AccountHistoryPlugin plugin, AccountHistoryConfig config,
-				OkHttpClient httpClient, Gson gson)
+	BaseTracker(AccountHistoryPlugin plugin, OkHttpClient httpClient, Gson gson)
 	{
 		this.plugin = plugin;
-		this.config = config;
 		this.httpClient = httpClient;
 		this.gson = gson;
 	}
 
 	protected final void sendEvent(String type, Object data)
 	{
-		if (!config.sendEvents())
-		{
-			return;
-		}
 		if (plugin.isRestrictedWorld())
 		{
 			return;

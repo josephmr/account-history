@@ -11,9 +11,8 @@ import java.util.Map;
 class AccountIdentifyTracker extends BaseTracker {
 	private boolean shouldSendIdentify = true;
 
-	AccountIdentifyTracker(AccountHistoryPlugin plugin, AccountHistoryConfig config,
-			OkHttpClient httpClient, Gson gson) {
-		super(plugin, config, httpClient, gson);
+	AccountIdentifyTracker(AccountHistoryPlugin plugin, OkHttpClient httpClient, Gson gson) {
+		super(plugin, httpClient, gson);
 	}
 
 	@Override

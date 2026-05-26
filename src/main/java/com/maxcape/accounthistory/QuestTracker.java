@@ -25,9 +25,8 @@ class QuestTracker extends BaseTracker {
 	private final EnumMap<Quest, QuestState> prevStates = new EnumMap<>(Quest.class);
 	private int ticksElapsed = -1; // -1 = inactive, >=0 = ticks elapsed since armed
 
-	QuestTracker(Client client, AccountHistoryPlugin plugin, AccountHistoryConfig config,
-			OkHttpClient httpClient, Gson gson) {
-		super(plugin, config, httpClient, gson);
+	QuestTracker(Client client, AccountHistoryPlugin plugin, OkHttpClient httpClient, Gson gson) {
+		super(plugin, httpClient, gson);
 		this.client = client;
 	}
 

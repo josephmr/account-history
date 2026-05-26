@@ -17,10 +17,9 @@ class DiaryTracker extends BaseTracker
 		"Congratulations! You have completed all of the (?<difficulty>\\w+) tasks in the (?<area>.+) area\\."
 	);
 
-	DiaryTracker(AccountHistoryPlugin plugin, AccountHistoryConfig config,
-				 OkHttpClient httpClient, Gson gson)
+	DiaryTracker(AccountHistoryPlugin plugin, OkHttpClient httpClient, Gson gson)
 	{
-		super(plugin, config, httpClient, gson);
+		super(plugin, httpClient, gson);
 	}
 
 	@Override

@@ -24,10 +24,9 @@ class LevelUpTracker extends BaseTracker
 	private int initTicksWaited = -1;
 	private boolean initialized = false;
 
-	LevelUpTracker(Client client, AccountHistoryPlugin plugin, AccountHistoryConfig config,
-				   OkHttpClient httpClient, Gson gson)
+	LevelUpTracker(Client client, AccountHistoryPlugin plugin, OkHttpClient httpClient, Gson gson)
 	{
-		super(plugin, config, httpClient, gson);
+		super(plugin, httpClient, gson);
 		this.client = client;
 	}
 

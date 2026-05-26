@@ -20,10 +20,9 @@ class BossKillTracker extends BaseTracker
 	private static final Pattern SECONDARY_PATTERN =
 		Pattern.compile("Your (?:completed|subdued) (.+?) count is: ([\\d,]+)\\.");
 
-	BossKillTracker(AccountHistoryPlugin plugin, AccountHistoryConfig config,
-					OkHttpClient httpClient, Gson gson)
+	BossKillTracker(AccountHistoryPlugin plugin, OkHttpClient httpClient, Gson gson)
 	{
-		super(plugin, config, httpClient, gson);
+		super(plugin, httpClient, gson);
 	}
 
 	@Override

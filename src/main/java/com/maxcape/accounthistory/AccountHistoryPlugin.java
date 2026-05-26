@@ -1,7 +1,6 @@
 package com.maxcape.accounthistory;
 
 import com.google.gson.Gson;
-import com.google.inject.Provides;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -16,7 +15,6 @@ import net.runelite.api.events.GameTick;
 import net.runelite.api.events.StatChanged;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.callback.ClientThread;
-import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -34,9 +32,6 @@ public class AccountHistoryPlugin extends Plugin
 	private Client client;
 
 	@Inject
-	private AccountHistoryConfig config;
-
-	@Inject
 	private OkHttpClient httpClient;
 
 	@Inject
@@ -51,12 +46,12 @@ public class AccountHistoryPlugin extends Plugin
 	protected void startUp()
 	{
 		trackers = List.of(
-			new AccountIdentifyTracker(this, config, httpClient, gson),
-			new LevelUpTracker(client, this, config, httpClient, gson),
-			new CollectionLogTracker(this, config, httpClient, gson),
-			new BossKillTracker(this, config, httpClient, gson),
-			new DiaryTracker(this, config, httpClient, gson),
-			new QuestTracker(client, this, config, httpClient, gson)
+			new AccountIdentifyTracker(this, httpClient, gson),
+			new LevelUpTracker(client, this, httpClient, gson),
+			new CollectionLogTracker(this, httpClient, gson),
+			new BossKillTracker(this, httpClient, gson),
+			new DiaryTracker(this, httpClient, gson),
+			new QuestTracker(client, this, httpClient, gson)
 		);
 		log.debug("MaxCape started");
 
@@ -137,9 +132,4 @@ public class AccountHistoryPlugin extends Plugin
 			|| types.contains(WorldType.BETA_WORLD);
 	}
 
-	@Provides
-	AccountHistoryConfig provideConfig(ConfigManager configManager)
-	{
-		return configManager.getConfig(AccountHistoryConfig.class);
-	}
 }

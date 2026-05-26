@@ -16,10 +16,9 @@ class CollectionLogTracker extends BaseTracker
 	private static final Pattern COLLECTION_LOG_PATTERN =
 		Pattern.compile("New item added to your collection log: (.+)");
 
-	CollectionLogTracker(AccountHistoryPlugin plugin, AccountHistoryConfig config,
-						 OkHttpClient httpClient, Gson gson)
+	CollectionLogTracker(AccountHistoryPlugin plugin, OkHttpClient httpClient, Gson gson)
 	{
-		super(plugin, config, httpClient, gson);
+		super(plugin, httpClient, gson);
 	}
 
 	@Override
