@@ -6,6 +6,7 @@ import net.runelite.api.ChatMessageType;
 import net.runelite.api.events.ChatMessage;
 import okhttp3.OkHttpClient;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,10 +16,10 @@ class BossKillTracker extends BaseTracker
 {
 	// "Your X kill/chest/completion/harvest/success/opened count is: N"
 	private static final Pattern PRIMARY_PATTERN =
-		Pattern.compile("Your (.+?)\\s(kill|chest|completion|harvest|success|opened)\\s?count is: ?([\\d,]+)\\.");
+		Pattern.compile("Your (.+?)\\s(kill|chest|completion|harvest|success|opened)\\s?count is: ?([\\d,]+)\\.", Pattern.CASE_INSENSITIVE);
 	// "Your (completed|subdued) X count is: N" — raids, Wintertodt
 	private static final Pattern SECONDARY_PATTERN =
-		Pattern.compile("Your (?:completed|subdued) (.+?) count is: ([\\d,]+)\\.");
+		Pattern.compile("Your (?:completed|subdued) (.+?) count is: ([\\d,]+)\\.", Pattern.CASE_INSENSITIVE);
 
 	BossKillTracker(AccountHistoryPlugin plugin, OkHttpClient httpClient, Gson gson)
 	{
@@ -78,7 +79,7 @@ class BossKillTracker extends BaseTracker
 
 	private static String normalizeBossName(String rawName, String type)
 	{
-		switch (type)
+		switch (type.toLowerCase(Locale.ROOT))
 		{
 			case "kill":
 			case "success":

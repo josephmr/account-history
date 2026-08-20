@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 class CollectionLogTracker extends BaseTracker
 {
 	private static final Pattern COLLECTION_LOG_PATTERN =
-		Pattern.compile("New item added to your collection log: (.+)");
+		Pattern.compile("New item added to your collection log: (.+)", Pattern.CASE_INSENSITIVE);
 
 	CollectionLogTracker(AccountHistoryPlugin plugin, OkHttpClient httpClient, Gson gson)
 	{

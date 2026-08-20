@@ -14,7 +14,8 @@ import java.util.regex.Pattern;
 class DiaryTracker extends BaseTracker
 {
 	private static final Pattern DIARY_PATTERN = Pattern.compile(
-		"Congratulations! You have completed all of the (?<difficulty>\\w+) tasks in the (?<area>.+) area\\."
+		"Congratulations! You have completed all of the (?<difficulty>\\w+) tasks in the (?<area>.+?) area\\.(?:\\s.*)?",
+		Pattern.CASE_INSENSITIVE
 	);
 
 	DiaryTracker(AccountHistoryPlugin plugin, OkHttpClient httpClient, Gson gson)
