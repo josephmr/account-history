@@ -13,8 +13,8 @@ import java.util.regex.Pattern;
 @Slf4j(topic = "maxcape.DiaryTracker")
 class DiaryTracker extends BaseTracker
 {
-	private static final Pattern DIARY_PATTERN = Pattern.compile(
-		"Congratulations! You have completed all of the (?<difficulty>\\w+) tasks in the (?<area>.+?) area\\.(?:\\s.*)?",
+	static final Pattern DIARY_PATTERN = Pattern.compile(
+		"(?:Congratulations! )?You have completed all of the (?<difficulty>\\w+) tasks in the (?<area>.+?) area\\.(?:\\s.*)?",
 		Pattern.CASE_INSENSITIVE
 	);
 
