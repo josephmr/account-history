@@ -28,6 +28,15 @@ import okhttp3.OkHttpClient;
 )
 public class AccountHistoryPlugin extends Plugin
 {
+	private static final EnumSet<WorldType> ALLOWED_WORLD_TYPES = EnumSet.of(
+		WorldType.MEMBERS,
+		WorldType.PVP,
+		WorldType.BOUNTY,
+		WorldType.SKILL_TOTAL,
+		WorldType.HIGH_RISK,
+		WorldType.LAST_MAN_STANDING
+	);
+
 	@Inject
 	private Client client;
 
@@ -122,14 +131,12 @@ public class AccountHistoryPlugin extends Plugin
 
 	boolean isRestrictedWorld()
 	{
-		EnumSet<WorldType> types = client.getWorldType();
-		return types.contains(WorldType.SEASONAL)
-			|| types.contains(WorldType.DEADMAN)
-			|| types.contains(WorldType.QUEST_SPEEDRUNNING)
-			|| types.contains(WorldType.NOSAVE_MODE)
-			|| types.contains(WorldType.FRESH_START_WORLD)
-			|| types.contains(WorldType.TOURNAMENT_WORLD)
-			|| types.contains(WorldType.BETA_WORLD);
+		return !isAllowedWorld(client.getWorldType());
+	}
+
+	static boolean isAllowedWorld(EnumSet<WorldType> types)
+	{
+		return ALLOWED_WORLD_TYPES.containsAll(types);
 	}
 
 }
