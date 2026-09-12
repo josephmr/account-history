@@ -59,7 +59,7 @@ public class AccountHistoryPlugin extends Plugin
 			new LevelUpTracker(client, this, httpClient, gson),
 			new CollectionLogTracker(this, httpClient, gson),
 			new BossKillTracker(this, httpClient, gson),
-			new DiaryTracker(this, httpClient, gson),
+			new DiaryTracker(client, this, httpClient, gson),
 			new QuestTracker(client, this, httpClient, gson)
 		);
 		log.debug("MaxCape started");
